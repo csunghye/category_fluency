@@ -26,10 +26,10 @@ The 6B.300d GloVe word embedding file is used to calculate semantic distance bet
 This pipeline measures the following:
 
 ### Score file
-- Number of total words: Total number of words starting with a given letter including proper nouns, numerics, and repetitions
-- Number of proper nouns: The number of proper nouns starting with a given letter (e.g., "Fanta" for "f")
-- Number of numerics: The number of numeric words starting with a given letter (e.g., "forty" for "f")
-- Number of repetitions: The number of repeated answers starting with a given letter. This count is based on lemma of words, so "flower" and "flowers" are considered as a repetition.  
+- Number of total words: Total number of words that belong to a given category based on the WordNet taxonomy applied in `textblob`.
+- Number of proper nouns: The number of proper nouns
+- Number of numerics: The number of numeric words
+- Number of repetitions: The number of repeated answers. This count is based on lemma of words, so "cat" and "cats" are considered as a repetition.  
 
 So, the actual score of a speaker would be total number of words - (number of proper nouns + numerics + repetitions). 
 
