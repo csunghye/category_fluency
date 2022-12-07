@@ -16,17 +16,6 @@ from textblob import Word
 from nltk.corpus import wordnet as wn
 
 
-animal = Word("animal").synsets[0]
-
-def get_hyponyms(synset):
-    hyponyms = set()
-    for hyponym in synset.hyponyms():
-        hyponyms |= set(get_hyponyms(hyponym))
-    return hyponyms | set(synset.hyponyms())
-
-animal_list = get_hyponyms(animal)
-
-
 nlp = spacy.load('en_core_web_lg')
 LEXICAL_LOOKUP = './all_measures_raw.csv'
 FILLERS = ['um','uh','eh', 'oh']
