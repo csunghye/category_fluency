@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import gensim.models 
 from textblob import Word
-from nltk.corpus import wordnet as wn
+import nltk.corpus
 
 
 #animal = Word("animal").synsets[0]
