@@ -2,8 +2,6 @@
 
 import spacy
 import argparse, glob
-import utils
-import lexical_pipeline
 from scipy import spatial
 from pydub import AudioSegment
 #from pydub.playback import play
@@ -14,6 +12,17 @@ import pandas as pd
 import gensim.models 
 from textblob import Word
 from nltk.corpus import wordnet as wn
+
+
+#animal = Word("animal").synsets[0]
+
+#def get_hyponyms(synset):
+#    hyponyms = set()
+#    for hyponym in synset.hyponyms():
+#        hyponyms |= set(get_hyponyms(hyponym))
+#    return hyponyms | set(synset.hyponyms())
+
+#animal_list = get_hyponyms(animal)
 
 
 nlp = spacy.load('en_core_web_lg')
@@ -135,6 +144,16 @@ def add_lexical(df, measureDict, phonDf):
 	df = word_phone.fillna(lemma_phone)
 	return df
 
+def get_phondict():
+	phonDf = pd.DataFrame.from_dict(nltk.corpus.cmudict.dict(), orient='index')
+	phonDf = phonDf.reset_index()
+	phonDf['phon'] = phonDf[0].map(len)
+	phonDf = phonDf.drop(columns=[1,2,3,4])
+	phonDf.columns = ['word','pron','phon']
+	phonDf['pronstring'] = [','.join(map(str, l)) for l in phonDf['pron']]
+	phonDf['syll'] = phonDf.pronstring.str.count("0|1|2")
+	return phonDf
+
 def main(args):
     outputname = args.measure_file
     scorename = args.score_file
@@ -142,7 +161,7 @@ def main(args):
     category = Word(args.category).synsets[0]
     correct_list = get_hyponyms(category)
     measureDict = pd.read_csv(LEXICAL_LOOKUP)
-    phonDf = lexical_pipeline.get_phondict()
+    phonDf = get_phondict()
     allResults = pd.DataFrame()
     if args.FA_filetype:
         filelist = glob.glob(args.FA_folder+'/'+args.FA_filetype)
