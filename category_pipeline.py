@@ -4,7 +4,6 @@ import spacy
 import argparse, glob
 from scipy import spatial
 from pydub import AudioSegment
-#from pydub.playback import play
 from dtw import *
 import librosa
 import numpy as np
@@ -14,19 +13,8 @@ from textblob import Word
 import nltk.corpus
 
 
-#animal = Word("animal").synsets[0]
-
-#def get_hyponyms(synset):
-#    hyponyms = set()
-#    for hyponym in synset.hyponyms():
-#        hyponyms |= set(get_hyponyms(hyponym))
-#    return hyponyms | set(synset.hyponyms())
-
-#animal_list = get_hyponyms(animal)
-
-
 nlp = spacy.load('en_core_web_lg')
-LEXICAL_LOOKUP = './all_measures_raw.csv'
+LEXICAL_LOOKUP = '~/Documents/cookie/all_measures_raw.csv'
 FILLERS = ['um','uh','eh', 'oh']
 BACKCHANNELS = ['hm', 'yeah', 'mhm', 'huh']
 model = gensim.models.KeyedVectors.load_word2vec_format('/Users/csunghye/gensim-data/word2vec-google-news-300/word2vec-google-news-300.gz', binary=True)
@@ -38,11 +26,16 @@ def get_hyponyms(synset):
         hyponyms |= set(get_hyponyms(hyponym))
     return hyponyms | set(synset.hyponyms())
 
-def correct_word(word, args):
-	animal = Word(args.category).synsets[0]
-	correct_list = get_hyponyms(animal)
-	if (set(Word(word).synsets) & set(correct_list)):
-		return True
+def correct_word(word, correct_list):
+	print(Word(word).synsets)
+	if len(Word(word).synsets) > 0:
+		animal = Word(word).synsets[0]
+		correct_list = get_hyponyms(animal)
+
+		if (set(Word(word).synsets) & set(correct_list)):
+			return True
+		else:
+			return False
 	else:
 		return False
 
@@ -101,7 +94,8 @@ def get_dur_pos_phon_sem(file, data_wav, fs, correct_list, args):
                     word = data[2].split()[0]+'_'+data[2].split()[1]
                 else:
                     word = data[2]
-                if correct_word(word, correct_list) == True:
+                print(word)
+                if (word != "sp") and (correct_word(word, correct_list) == True):
                     word_dur = float(data[1]) - float(data[0])
                     mfcc = get_mfcc(data_wav, data[0], data[1], fs)
                     phon_sim = get_phon_sim(prev_mfcc, mfcc)
@@ -158,20 +152,20 @@ def main(args):
     outputname = args.measure_file
     scorename = args.score_file
     filelist = glob.glob(args.audio_folder+'/*.wav')
-    category = Word(args.category).synsets[0]
-    correct_list = get_hyponyms(category)
+    category = args.category
+    correct_list = get_hyponyms(Word(category).synsets[0])
     measureDict = pd.read_csv(LEXICAL_LOOKUP)
     phonDf = get_phondict()
     allResults = pd.DataFrame()
-    if args.FA_filetype:
-        filelist = glob.glob(args.FA_folder+'/'+args.FA_filetype)
-    else:
-        filelist = glob.glob(args.FA_folder+'/*.word')
     
     with open(scorename, 'w') as outFile:
         for file in filelist:
-            print(file)
+            
             filename = file.split('.')[0]+args.FA_filetype
+            if args.FA_filetype:
+                filename = file.split('.')[0]+args.FA_filetype
+            else:
+                filename = file.split('.')[0]+'.word'
             data_wav,fs = read_audio(file)
             wav_name = file.split('/')[-1]
             df = get_dur_pos_phon_sem(filename, data_wav, fs, correct_list, args)
