@@ -1,4 +1,4 @@
-## Usage python3 animals_pipeline.py -measurement_file all_results.csv -score_file scores.csv -input_folder ~/Documents/speechbiomarkers/fluency/animals/subset_carmen -category animal
+##usage: python3 ~/Documents/pipelines/animals_pipeline.py -measure_file all_results.csv -score_file scores.csv -audio_folder ~/Documents/AA_pilot/animals -FA_folder ~/Documents/AA_pilot/animals -category animal -FA_filetype .word
 
 import spacy
 import argparse, glob
@@ -13,7 +13,6 @@ from textblob import Word
 import nltk.corpus
 
 
-nlp = spacy.load('en_core_web_lg')
 LEXICAL_LOOKUP = '~/Documents/cookie/all_measures_raw.csv'
 FILLERS = ['um','uh','eh', 'oh']
 BACKCHANNELS = ['hm', 'yeah', 'mhm', 'huh']
@@ -27,11 +26,7 @@ def get_hyponyms(synset):
     return hyponyms | set(synset.hyponyms())
 
 def correct_word(word, correct_list):
-	print(Word(word).synsets)
 	if len(Word(word).synsets) > 0:
-		animal = Word(word).synsets[0]
-		correct_list = get_hyponyms(animal)
-
 		if (set(Word(word).synsets) & set(correct_list)):
 			return True
 		else:
@@ -81,7 +76,7 @@ def get_dur_pos_phon_sem(file, data_wav, fs, correct_list, args):
     newdf = []
     prev_mfcc = np.array([], dtype=np.float64)
     infile = open(file, 'r')
-    wav_name = file.split('/')[-1][:-8]+'.wav'
+    wav_name = file.split('/')[-1].split('.')[0]+'.wav'
     pause_dur = 0
     order = 0
     prev_word = 'NA'
@@ -94,14 +89,14 @@ def get_dur_pos_phon_sem(file, data_wav, fs, correct_list, args):
                     word = data[2].split()[0]+'_'+data[2].split()[1]
                 else:
                     word = data[2]
-                print(word)
-                if (word != "sp") and (correct_word(word, correct_list) == True):
+                
+                if correct_word(word, correct_list) == True:
                     word_dur = float(data[1]) - float(data[0])
                     mfcc = get_mfcc(data_wav, data[0], data[1], fs)
                     phon_sim = get_phon_sim(prev_mfcc, mfcc)
                     sem_sim = get_sem_sim(word.lower(), prev_word)
                     order +=1
-                    newdf.append([wav_name, data[0], data[1], word.lower(), order, word_dur, pause_dur, "NOUN", word.lower(), phon_sim, sem_sim])
+                    newdf.append([wav_name, data[0], data[1], word.lower(), order, word_dur, pause_dur, "POS",word.lower(), phon_sim, sem_sim])
                     prev_mfcc = mfcc
                     prev_word = word.lower()
                     word_dur = 0
@@ -154,6 +149,7 @@ def main(args):
     filelist = glob.glob(args.audio_folder+'/*.wav')
     category = args.category
     correct_list = get_hyponyms(Word(category).synsets[0])
+    
     measureDict = pd.read_csv(LEXICAL_LOOKUP)
     phonDf = get_phondict()
     allResults = pd.DataFrame()
