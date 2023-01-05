@@ -171,7 +171,7 @@ def main(args):
             
             filename = file.split('/')[-1].split('.')[0]
             if args.FA_folder:
-                filename = args.FA_folder +filename + '.word'
+                filename = args.FA_folder +'/'+filename + '.word'
             else:
                 filename = file.split('.')[0]+'.word'
             data_wav,fs = read_audio(file)
