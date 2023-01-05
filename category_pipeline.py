@@ -1,9 +1,9 @@
-##usage: python3 ~/Documents/pipelines/animals_pipeline.py -measure_file all_results.csv -score_file scores.csv -audio_folder ~/Documents/AA_pilot/animals -FA_folder ~/Documents/AA_pilot/animals -category animal -FA_filetype .word
-
-import spacy
+## Usage python3 ~/Documents/pipelines/animals_pipeline.py -measure_file all_results.csv -score_file scores.csv -audio_folder ~/Documents/AA_pilot/animals -FA_folder ~/Documents/AA_pilot/animals -category animal -FA_filetype .word
+#import spacy
 import argparse, glob
 from scipy import spatial
 from pydub import AudioSegment
+#from pydub.playback import play
 from dtw import *
 import librosa
 import numpy as np
@@ -13,6 +13,18 @@ from textblob import Word
 import nltk.corpus
 
 
+#animal = Word("animal").synsets[0]
+
+#def get_hyponyms(synset):
+#    hyponyms = set()
+#    for hyponym in synset.hyponyms():
+#        hyponyms |= set(get_hyponyms(hyponym))
+#    return hyponyms | set(synset.hyponyms())
+
+#animal_list = get_hyponyms(animal)
+
+
+#nlp = spacy.load('en_core_web_lg')
 LEXICAL_LOOKUP = '~/Documents/cookie/all_measures_raw.csv'
 FILLERS = ['um','uh','eh', 'oh']
 BACKCHANNELS = ['hm', 'yeah', 'mhm', 'huh']
@@ -157,9 +169,9 @@ def main(args):
     with open(scorename, 'w') as outFile:
         for file in filelist:
             
-            filename = file.split('.')[0]+args.FA_filetype
-            if args.FA_filetype:
-                filename = file.split('.')[0]+args.FA_filetype
+            filename = file.split('/')[-1].split('.')[0]
+            if args.FA_folder:
+                filename = args.FA_folder +filename + '.word'
             else:
                 filename = file.split('.')[0]+'.word'
             data_wav,fs = read_audio(file)
